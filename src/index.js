@@ -66,6 +66,29 @@ app.get("/users/:id", async (req, res) => {
   }
 });
 
+app.patch("/users/:id", async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const { fullname, bio, isPrivate } = req.body;
+
+  const updateData = {};
+  if (fullname !== undefined) updateData.fullname = fullname;
+  if (bio !== undefined) updateData.bio = bio;
+  if (isPrivate !== undefined) updateData.isPrivate = isPrivate;
+
+  try {
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: updateData,
+    });
+    return res.status(200).json(updatedUser);
+  } catch (error) {
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "User not found" });
+    }
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
