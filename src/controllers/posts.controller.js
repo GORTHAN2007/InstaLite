@@ -15,6 +15,16 @@ async function create(req, res) {
   }
 }
 
+async function list(req, res) {
+  try {
+    const posts = await postsService.listPosts();
+    return res.status(200).json(posts);
+  } catch (error) {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
 module.exports = {
   create,
+  list,
 };

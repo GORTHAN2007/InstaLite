@@ -11,6 +11,11 @@ async function createPost(data) {
   });
 }
 
+async function listPosts() {
+  return await prisma.post.findMany();
+}
+
 module.exports = {
   createPost,
+  listPosts,
 };
