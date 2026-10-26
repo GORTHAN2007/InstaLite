@@ -35,6 +35,8 @@ async function list(req, res) {
   let limit = 10;
   let sortBy = "createdAt";
   let order = "desc";
+  let isPrivate;
+  let search;
 
   if (req.query.page !== undefined) {
     const parsedPage = parsePositiveInt(req.query.page);
@@ -66,8 +68,22 @@ async function list(req, res) {
     order = req.query.order;
   }
 
+  if (req.query.isPrivate !== undefined) {
+    if (req.query.isPrivate === "true") {
+      isPrivate = true;
+    } else if (req.query.isPrivate === "false") {
+      isPrivate = false;
+    } else {
+      return res.status(400).json({ error: "isPrivate must be true or false" });
+    }
+  }
+
+  if (req.query.search !== undefined && req.query.search !== "") {
+    search = req.query.search;
+  }
+
   try {
-    const result = await usersService.listUsers({ page, limit, sortBy, order });
+    const result = await usersService.listUsers({ page, limit, sortBy, order, isPrivate, search });
     return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({ error: "Internal server error" });
