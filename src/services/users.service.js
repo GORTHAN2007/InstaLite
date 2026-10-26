@@ -12,14 +12,14 @@ async function createUser(data) {
   });
 }
 
-async function listUsers({ page, limit }) {
+async function listUsers({ page, limit, sortBy = "createdAt", order = "desc" }) {
   const skip = (page - 1) * limit;
 
   const [users, total] = await prisma.$transaction([
     prisma.user.findMany({
       skip,
       take: limit,
-      orderBy: { createdAt: "desc" },
+      orderBy: { [sortBy]: order },
     }),
     prisma.user.count(),
   ]);

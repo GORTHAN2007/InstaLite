@@ -7,6 +7,9 @@ function parsePositiveInt(val) {
   return num > 0 ? num : NaN;
 }
 
+const ALLOWED_SORT_BY = ["createdAt", "username", "fullname"];
+const ALLOWED_ORDER = ["asc", "desc"];
+
 async function create(req, res) {
   const { username, email, fullname, bio } = req.body;
 
@@ -30,6 +33,8 @@ async function create(req, res) {
 async function list(req, res) {
   let page = 1;
   let limit = 10;
+  let sortBy = "createdAt";
+  let order = "desc";
 
   if (req.query.page !== undefined) {
     const parsedPage = parsePositiveInt(req.query.page);
@@ -47,8 +52,22 @@ async function list(req, res) {
     limit = Math.min(parsedLimit, 50);
   }
 
+  if (req.query.sortBy !== undefined) {
+    if (!ALLOWED_SORT_BY.includes(req.query.sortBy)) {
+      return res.status(400).json({ error: "sortBy must be one of: createdAt, username, fullname" });
+    }
+    sortBy = req.query.sortBy;
+  }
+
+  if (req.query.order !== undefined) {
+    if (!ALLOWED_ORDER.includes(req.query.order)) {
+      return res.status(400).json({ error: "order must be asc or desc" });
+    }
+    order = req.query.order;
+  }
+
   try {
-    const result = await usersService.listUsers({ page, limit });
+    const result = await usersService.listUsers({ page, limit, sortBy, order });
     return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({ error: "Internal server error" });
