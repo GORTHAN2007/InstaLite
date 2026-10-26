@@ -15,7 +15,6 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: "OK" });
 });
 
-// POST /users
 app.post("/users", async (req, res) => {
   const { username, email, fullname, bio } = req.body;
 
@@ -42,6 +41,16 @@ app.post("/users", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+
+app.get("/users", async (req, res) => {
+  try {
+    const users = await prisma.user.findMany();
+    return res.status(200).json(users);
+  } catch (error) {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
