@@ -11,16 +11,37 @@ async function createPost(data) {
   });
 }
 
-async function listPosts({ page, limit, sortBy = "createdAt", order = "desc" }) {
+async function listPosts({ page, limit, sortBy = "createdAt", order = "desc", location, search, from, to }) {
   const skip = (page - 1) * limit;
+
+  const where = {};
+
+  if (location) {
+    where.location = { equals: location, mode: "insensitive" };
+  }
+
+  if (search) {
+    where.caption = { contains: search, mode: "insensitive" };
+  }
+
+  if (from || to) {
+    where.createdAt = {};
+    if (from) {
+      where.createdAt.gte = from;
+    }
+    if (to) {
+      where.createdAt.lt = to;
+    }
+  }
 
   const [posts, total] = await prisma.$transaction([
     prisma.post.findMany({
+      where,
       skip,
       take: limit,
       orderBy: { [sortBy]: order },
     }),
-    prisma.post.count(),
+    prisma.post.count({ where }),
   ]);
 
   const totalPages = Math.ceil(total / limit);

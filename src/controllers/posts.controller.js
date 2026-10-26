@@ -30,6 +30,10 @@ async function list(req, res) {
   let limit = 10;
   let sortBy = "createdAt";
   let order = "desc";
+  let location;
+  let search;
+  let from;
+  let to;
 
   if (req.query.page !== undefined) {
     const parsedPage = parsePositiveInt(req.query.page);
@@ -61,8 +65,41 @@ async function list(req, res) {
     order = req.query.order;
   }
 
+  if (req.query.location !== undefined && req.query.location !== "") {
+    location = req.query.location;
+  }
+
+  if (req.query.search !== undefined && req.query.search !== "") {
+    search = req.query.search;
+  }
+
+  if (req.query.from !== undefined) {
+    const fromDate = new Date(req.query.from);
+    if (isNaN(fromDate.getTime())) {
+      return res.status(400).json({ error: "from and to must be valid dates" });
+    }
+    from = fromDate;
+  }
+
+  if (req.query.to !== undefined) {
+    const toDate = new Date(req.query.to);
+    if (isNaN(toDate.getTime())) {
+      return res.status(400).json({ error: "from and to must be valid dates" });
+    }
+    to = toDate;
+  }
+
   try {
-    const result = await postsService.listPosts({ page, limit, sortBy, order });
+    const result = await postsService.listPosts({
+      page,
+      limit,
+      sortBy,
+      order,
+      location,
+      search,
+      from,
+      to,
+    });
     return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({ error: "Internal server error" });
