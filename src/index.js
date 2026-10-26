@@ -51,6 +51,21 @@ app.get("/users", async (req, res) => {
   }
 });
 
+app.get("/users/:id", async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id },
+    });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    return res.status(200).json(user);
+  } catch (error) {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
