@@ -15,7 +15,14 @@ async function listPosts() {
   return await prisma.post.findMany();
 }
 
+async function getPostById(id) {
+  return await prisma.post.findUnique({
+    where: { id },
+  });
+}
+
 module.exports = {
   createPost,
   listPosts,
+  getPostById,
 };
