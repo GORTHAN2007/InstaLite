@@ -21,8 +21,21 @@ async function getPostById(id) {
   });
 }
 
+async function updatePost(id, data) {
+  const { caption, location } = data;
+  const updateData = {};
+  if (caption !== undefined) updateData.caption = caption;
+  if (location !== undefined) updateData.location = location;
+
+  return await prisma.post.update({
+    where: { id },
+    data: updateData,
+  });
+}
+
 module.exports = {
   createPost,
   listPosts,
   getPostById,
+  updatePost,
 };
