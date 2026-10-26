@@ -1,4 +1,4 @@
-const prisma = require("../db");
+const usersService = require("../services/users.service");
 
 async function create(req, res) {
   const { username, email, fullname, bio } = req.body;
@@ -10,14 +10,7 @@ async function create(req, res) {
   }
 
   try {
-    const user = await prisma.user.create({
-      data: {
-        username,
-        email,
-        fullname,
-        bio: bio ?? null,
-      },
-    });
+    const user = await usersService.createUser({ username, email, fullname, bio });
     return res.status(201).json(user);
   } catch (error) {
     if (error.code === "P2002") {
@@ -29,7 +22,7 @@ async function create(req, res) {
 
 async function list(req, res) {
   try {
-    const users = await prisma.user.findMany();
+    const users = await usersService.listUsers();
     return res.status(200).json(users);
   } catch (error) {
     return res.status(500).json({ error: "Internal server error" });
@@ -39,9 +32,7 @@ async function list(req, res) {
 async function getOne(req, res) {
   const id = parseInt(req.params.id, 10);
   try {
-    const user = await prisma.user.findUnique({
-      where: { id },
-    });
+    const user = await usersService.getUserById(id);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -55,15 +46,11 @@ async function update(req, res) {
   const id = parseInt(req.params.id, 10);
   const { fullname, bio, isPrivate } = req.body;
 
-  const updateData = {};
-  if (fullname !== undefined) updateData.fullname = fullname;
-  if (bio !== undefined) updateData.bio = bio;
-  if (isPrivate !== undefined) updateData.isPrivate = isPrivate;
-
   try {
-    const updatedUser = await prisma.user.update({
-      where: { id },
-      data: updateData,
+    const updatedUser = await usersService.updateUser(id, {
+      fullname,
+      bio,
+      isPrivate,
     });
     return res.status(200).json(updatedUser);
   } catch (error) {
@@ -77,9 +64,7 @@ async function update(req, res) {
 async function remove(req, res) {
   const id = parseInt(req.params.id, 10);
   try {
-    await prisma.user.delete({
-      where: { id },
-    });
+    await usersService.deleteUser(id);
     return res.status(204).send();
   } catch (error) {
     if (error.code === "P2025") {
