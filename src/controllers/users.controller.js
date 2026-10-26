@@ -1,5 +1,12 @@
 const usersService = require("../services/users.service");
 
+function parsePositiveInt(val) {
+  if (val === undefined) return null;
+  if (!/^\d+$/.test(val)) return NaN;
+  const num = parseInt(val, 10);
+  return num > 0 ? num : NaN;
+}
+
 async function create(req, res) {
   const { username, email, fullname, bio } = req.body;
 
@@ -21,9 +28,28 @@ async function create(req, res) {
 }
 
 async function list(req, res) {
+  let page = 1;
+  let limit = 10;
+
+  if (req.query.page !== undefined) {
+    const parsedPage = parsePositiveInt(req.query.page);
+    if (!parsedPage || isNaN(parsedPage)) {
+      return res.status(400).json({ error: "page and limit must be positive integers" });
+    }
+    page = parsedPage;
+  }
+
+  if (req.query.limit !== undefined) {
+    const parsedLimit = parsePositiveInt(req.query.limit);
+    if (!parsedLimit || isNaN(parsedLimit)) {
+      return res.status(400).json({ error: "page and limit must be positive integers" });
+    }
+    limit = Math.min(parsedLimit, 50);
+  }
+
   try {
-    const users = await usersService.listUsers();
-    return res.status(200).json(users);
+    const result = await usersService.listUsers({ page, limit });
+    return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({ error: "Internal server error" });
   }
