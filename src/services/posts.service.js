@@ -11,8 +11,29 @@ async function createPost(data) {
   });
 }
 
-async function listPosts() {
-  return await prisma.post.findMany();
+async function listPosts({ page, limit, sortBy = "createdAt", order = "desc" }) {
+  const skip = (page - 1) * limit;
+
+  const [posts, total] = await prisma.$transaction([
+    prisma.post.findMany({
+      skip,
+      take: limit,
+      orderBy: { [sortBy]: order },
+    }),
+    prisma.post.count(),
+  ]);
+
+  const totalPages = Math.ceil(total / limit);
+
+  return {
+    data: posts,
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages,
+    },
+  };
 }
 
 async function getPostById(id) {

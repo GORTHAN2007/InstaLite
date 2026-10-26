@@ -1,5 +1,15 @@
 const postsService = require("../services/posts.service");
 
+function parsePositiveInt(val) {
+  if (val === undefined) return null;
+  if (!/^\d+$/.test(val)) return NaN;
+  const num = parseInt(val, 10);
+  return num > 0 ? num : NaN;
+}
+
+const ALLOWED_SORT_BY = ["createdAt", "updatedAt"];
+const ALLOWED_ORDER = ["asc", "desc"];
+
 async function create(req, res) {
   const { imageUrl, caption, location } = req.body;
 
@@ -16,9 +26,44 @@ async function create(req, res) {
 }
 
 async function list(req, res) {
+  let page = 1;
+  let limit = 10;
+  let sortBy = "createdAt";
+  let order = "desc";
+
+  if (req.query.page !== undefined) {
+    const parsedPage = parsePositiveInt(req.query.page);
+    if (!parsedPage || isNaN(parsedPage)) {
+      return res.status(400).json({ error: "page and limit must be positive integers" });
+    }
+    page = parsedPage;
+  }
+
+  if (req.query.limit !== undefined) {
+    const parsedLimit = parsePositiveInt(req.query.limit);
+    if (!parsedLimit || isNaN(parsedLimit)) {
+      return res.status(400).json({ error: "page and limit must be positive integers" });
+    }
+    limit = Math.min(parsedLimit, 50);
+  }
+
+  if (req.query.sortBy !== undefined) {
+    if (!ALLOWED_SORT_BY.includes(req.query.sortBy)) {
+      return res.status(400).json({ error: "sortBy must be one of: createdAt, updatedAt" });
+    }
+    sortBy = req.query.sortBy;
+  }
+
+  if (req.query.order !== undefined) {
+    if (!ALLOWED_ORDER.includes(req.query.order)) {
+      return res.status(400).json({ error: "order must be asc or desc" });
+    }
+    order = req.query.order;
+  }
+
   try {
-    const posts = await postsService.listPosts();
-    return res.status(200).json(posts);
+    const result = await postsService.listPosts({ page, limit, sortBy, order });
+    return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({ error: "Internal server error" });
   }
