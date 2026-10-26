@@ -1,10 +1,5 @@
-require("dotenv").config();
 const express = require("express");
-const { PrismaClient } = require("../prisma/generated");
-const { PrismaPg } = require("@prisma/adapter-pg");
-
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-const prisma = new PrismaClient({ adapter });
+const prisma = require("./db");
 
 const app = express();
 const PORT = 3000;
@@ -103,7 +98,6 @@ app.delete("/users/:id", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
