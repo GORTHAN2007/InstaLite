@@ -12,7 +12,7 @@ async function createUser(data) {
   });
 }
 
-async function listUsers({ page, limit, sortBy = "createdAt", order = "desc", isPrivate, search }) {
+async function listUsers({ page, limit, sortBy = "createdAt", order = "desc", isPrivate, search, hasPosts }) {
   const skip = (page - 1) * limit;
 
   const where = {};
@@ -26,6 +26,12 @@ async function listUsers({ page, limit, sortBy = "createdAt", order = "desc", is
       { username: { contains: search, mode: "insensitive" } },
       { fullname: { contains: search, mode: "insensitive" } },
     ];
+  }
+
+  if (hasPosts === true) {
+    where.posts = { some: {} };
+  } else if (hasPosts === false) {
+    where.posts = { none: {} };
   }
 
   const [users, total] = await prisma.$transaction([
@@ -54,6 +60,14 @@ async function listUsers({ page, limit, sortBy = "createdAt", order = "desc", is
 async function getUserById(id) {
   return await prisma.user.findUnique({
     where: { id },
+    include: {
+      _count: {
+        select: {
+          posts: true,
+          likes: true,
+        },
+      },
+    },
   });
 }
 

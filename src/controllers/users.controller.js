@@ -37,6 +37,7 @@ async function list(req, res) {
   let order = "desc";
   let isPrivate;
   let search;
+  let hasPosts;
 
   if (req.query.page !== undefined) {
     const parsedPage = parsePositiveInt(req.query.page);
@@ -78,12 +79,22 @@ async function list(req, res) {
     }
   }
 
+  if (req.query.hasPosts !== undefined) {
+    if (req.query.hasPosts === "true") {
+      hasPosts = true;
+    } else if (req.query.hasPosts === "false") {
+      hasPosts = false;
+    } else {
+      return res.status(400).json({ error: "hasPosts must be true or false" });
+    }
+  }
+
   if (req.query.search !== undefined && req.query.search !== "") {
     search = req.query.search;
   }
 
   try {
-    const result = await usersService.listUsers({ page, limit, sortBy, order, isPrivate, search });
+    const result = await usersService.listUsers({ page, limit, sortBy, order, isPrivate, search, hasPosts });
     return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({ error: "Internal server error" });
