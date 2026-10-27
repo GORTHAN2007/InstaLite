@@ -35,12 +35,36 @@ async function listPosts({ page, limit, sortBy = "createdAt", order = "desc", lo
     }
   }
 
+  let prismaOrderBy;
+  if (sortBy === "likes") {
+    prismaOrderBy = [
+      { likes: { _count: order } },
+      { createdAt: "desc" },
+    ];
+  } else {
+    prismaOrderBy = { [sortBy]: order };
+  }
+
   const [posts, total] = await prisma.$transaction([
     prisma.post.findMany({
       where,
       skip,
       take: limit,
-      orderBy: { [sortBy]: order },
+      orderBy: prismaOrderBy,
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            fullname: true,
+          },
+        },
+        _count: {
+          select: {
+            likes: true,
+          },
+        },
+      },
     }),
     prisma.post.count({ where }),
   ]);

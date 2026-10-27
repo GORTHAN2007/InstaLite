@@ -7,7 +7,7 @@ function parsePositiveInt(val) {
   return num > 0 ? num : NaN;
 }
 
-const ALLOWED_SORT_BY = ["createdAt", "updatedAt"];
+const ALLOWED_SORT_BY = ["createdAt", "updatedAt", "likes"];
 const ALLOWED_ORDER = ["asc", "desc"];
 
 async function create(req, res) {
@@ -56,7 +56,7 @@ async function list(req, res) {
 
   if (req.query.sortBy !== undefined) {
     if (!ALLOWED_SORT_BY.includes(req.query.sortBy)) {
-      return res.status(400).json({ error: "sortBy must be one of: createdAt, updatedAt" });
+      return res.status(400).json({ error: "sortBy must be one of: createdAt, updatedAt, likes" });
     }
     sortBy = req.query.sortBy;
   }
