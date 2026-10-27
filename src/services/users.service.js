@@ -90,10 +90,52 @@ async function deleteUser(id) {
   });
 }
 
+async function getUserPosts(userId, { page, limit }) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+  if (!user) {
+    return null;
+  }
+
+  const skip = (page - 1) * limit;
+  const where = { authorId: userId };
+
+  const [posts, total] = await prisma.$transaction([
+    prisma.post.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      include: {
+        _count: {
+          select: {
+            likes: true,
+          },
+        },
+      },
+    }),
+    prisma.post.count({ where }),
+  ]);
+
+  const totalPages = Math.ceil(total / limit);
+
+  return {
+    data: posts,
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages,
+    },
+  };
+}
+
 module.exports = {
   createUser,
   listUsers,
   getUserById,
   updateUser,
   deleteUser,
+  getUserPosts,
 };
