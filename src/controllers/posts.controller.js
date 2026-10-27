@@ -11,16 +11,19 @@ const ALLOWED_SORT_BY = ["createdAt", "updatedAt"];
 const ALLOWED_ORDER = ["asc", "desc"];
 
 async function create(req, res) {
-  const { imageUrl, caption, location } = req.body;
+  const { imageUrl, caption, location, authorId } = req.body;
 
-  if (!imageUrl) {
-    return res.status(400).json({ error: "imageUrl is required" });
+  if (!imageUrl || !authorId) {
+    return res.status(400).json({ error: "imageUrl and authorId are required" });
   }
 
   try {
-    const post = await postsService.createPost({ imageUrl, caption, location });
+    const post = await postsService.createPost({ imageUrl, caption, location, authorId });
     return res.status(201).json(post);
   } catch (error) {
+    if (error.code === "P2003") {
+      return res.status(404).json({ error: "User not found" });
+    }
     return res.status(500).json({ error: "Internal server error" });
   }
 }
